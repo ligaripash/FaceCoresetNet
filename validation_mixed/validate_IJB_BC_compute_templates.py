@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import sys, os
 sys.path.insert(0, os.path.dirname(os.getcwd()))
-import net
+#import net
 
 from validation_mixed.insightface_ijb_helper.dataloader import prepare_dataloader
 from validation_mixed.insightface_ijb_helper import eval_helper_identification

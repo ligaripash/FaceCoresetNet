@@ -75,7 +75,8 @@ def main(args):
     resume_from_checkpoint = hparams.resume_from_checkpoint if hparams.resume_from_checkpoint else None
 
     if resume_from_checkpoint is not None:
-        trainer_mod = trainer_mod.load_from_checkpoint(resume_from_checkpoint,lr=hparams.lr, gamma_lr=hparams.gamma_lr)
+        trainer_mod = trainer_mod.load_from_checkpoint(resume_from_checkpoint,lr=hparams.lr, gamma_lr=hparams.gamma_lr,
+                                                       h=hparams.h)
 
     trainer = pl.Trainer(default_root_dir=hparams.output_dir,
                          logger=my_loggers,
