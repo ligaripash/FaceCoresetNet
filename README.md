@@ -1,58 +1,15 @@
-# AdaFace: Quality Adaptive Margin for Face Recognition
+# FaceCoresetNet: Differentiable Coresets for Face Set Recognition
 
-Official github repository for AdaFace: Quality Adaptive Margin for Face Recognition. 
-The paper (https://arxiv.org/abs/2204.00964) is presented in CVPR 2022 (Oral). 
+Official github repository for FaceCoresetNet: Differentiable Coresets for Face Set Recognition
 
 
-> Abstract: Recognition in low quality face datasets is challenging because facial attributes are obscured and degraded. Advances in margin-based loss functions have resulted in enhanced discriminability of faces in the embedding space. Further, previous studies have studied the effect of adaptive losses to assign more importance to misclassified (hard) examples. In this work, we introduce another aspect of adaptiveness in the loss function, namely the image quality. We argue that the strategy to emphasize misclassified samples should be adjusted according to their image quality. Specifically, the relative importance of easy and hard samples should be based on the sample's image quality. We propose a new loss function that emphasizes samples of different difficulty based on their image quality. Our method achieves this in the form of an adaptive margin function by approximating the image quality with feature norms. Extensive experiments show that our method, AdaFace, improves the face recognition performance over the state-of-the-art (SoTA) on four datasets (IJB-B, IJB-C, IJB-S and TinyFace).
+> Abstract: In set-based face recognition, we aim to compute the most discriminative descriptor from an unbounded set of images and videos showing a single person. A discriminative descriptor balances two policies when aggregating information from a given set. The first is a quality-based policy: emphasizing high-quality and down-weighting low-quality images. The second is a diversity-based policy: emphasizing unique images in the set and down-weighting multiple occurrences of similar images as found in video clips which can overwhelm the set representation.
+This work frames face-set representation as a differentiable coreset selection problem. Our model learns how to select a small coreset of the input set that balances quality and diversity policies using a learned metric parameterized by the face quality, optimized end-to-end. The selection process is a differentiable farthest-point-sampling (FPS) realized by approximating the non-differentiable Argmax operation with differentiable sampling from the Gumbel-Softmax distribution of distances. The small coreset is later used as queries in a self and cross-attention architecture to enrich the descriptor with information from the whole set. Our model is order-invariant and linear in the input set size.
+We set a new SOTA to set face verification on the IJB-B and IJB-C datasets. Our code is publicly available \footnote{\url{https://github.com/ligaripash/face_set_adaface/tree/fps_followed_by_pool-IJBB}}.
 
-```angular2html
-@inproceedings{kim2022adaface,
-  title={AdaFace: Quality Adaptive Margin for Face Recognition},
-  author={Kim, Minchul and Jain, Anil K and Liu, Xiaoming},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  year={2022}
-}
-```
 
 <img src="assets/main_figure.png"  />
 
-### Demo Comparison between AdaFace and ArcFace on Low Quality Images
-
-
-![Demo](assets/adaface_demo5.gif)
-The demo shows a comparison between AdaFace and ArcFace on a live video.
-To show how model performs with low quality images, we show `original`, `blur+` and `blur++` setting where
-`blur++` means it is heavily blurred. 
-The numbers with colorbox show the cosine similarity between the live image and the cloest matching gallery image.
-The statistics on the bottom show the cumulative count of true positive match for `blur++` setting. 
-AdaFace has high true positive rate. 
-It also shows it is less prone to making false positive (red) mistakes as sometimes observed in ArcFace.
-
-# Usage
-
-```python
-import torch
-from head import AdaFace
-
-# typical inputs with 512 dimension
-B = 5
-embbedings = torch.randn((B, 512)).float()  # latent code
-norms = torch.norm(embbedings, 2, -1, keepdim=True)
-labels =  torch.randint(70722, (B,))
-
-# instantiate AdaFace
-adaface = AdaFace(embedding_size=512,
-                  classnum=70722,
-                  m=0.4,
-                  h=0.333,
-                  s=64.,
-                  t_alpha=0.01,)
-
-# calculate loss
-cosine_with_margin = adaface(embbedings, norms, labels)
-loss = torch.nn.CrossEntropyLoss()(cosine_with_margin, labels)
-```
 
 # Installation
 
