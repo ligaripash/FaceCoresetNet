@@ -26,35 +26,17 @@ And FaceCoresetNet is trained on a subset of WebFace4M dataset.
 
 - Pretrained Model (You need both):
   - Precomputed Class Center for WebFace4M subset: [center_WebFace4MAdaFace_webface4m_subset.pth](https://drive.google.com/file/d/1WmiWjLSsfQU2PTwQAvnrep9u6Jfvd3tR/view?usp=share_link)
-  - Pretrained CAFace model:  [CAFace_AdaFaceWebFace4M.ckpt](https://drive.google.com/file/d/1a-nrXcX_h8sLQiTD_mGvmKAG58gE9Oi5/view?usp=share_link)
+  - Pretrained FaceCoresetNet model:  put link here
 
 Place these two files under `pretrained_models/`
 ```
 pretrained_models/
-├── CAFace_AdaFaceWebFace4M.ckpt                         
+├── FaceCoresetNet_AdaFaceWebFace4M.ckpt                         
 └── center_WebFace4MAdaFace_webface4m_subset.pth         
 ```
 
 # Testing on Arbitrary Videos (Demo)
 
-
-|  | <img src="assets/probe.gif" />  <center>Low Quality Video</center> |
-|:---------------------------:|--------------------------------------------------------------------|
-|         **Average**         | <img src="assets/average.png" />                                   |
-|  **Cluster and Aggregate**  | <img src="assets/cluster_and_aggregate.png" />                     |
-
-- Colored Dots: Cosine Similarity of individual frames to the gallery image. 
-- Star: Cosine Similarity of the fused feature.
-- Color: Weight of individual frames during feature fusion.
-
-Using Cluster and Aggregate, the fused feature is closer to the gallery image (right) than simply averaging.
-
-```
-cd demo
-run.sh
-```
-
-The demo code creates the above cosine similarity plot. 
 
 # Evaluation
 
