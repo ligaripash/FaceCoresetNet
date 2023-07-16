@@ -8,7 +8,7 @@ This work frames face-set representation as a differentiable coreset selection p
 We set a new SOTA to set face verification on the IJB-B and IJB-C datasets. Our code is publicly available \footnote{\url{https://github.com/ligaripash/face_set_adaface/tree/fps_followed_by_pool-IJBB}}.
 
 
-<img src="assets/main_figure.png"  />
+<img src="assets/arch.png"  />
 
 
 # Installation and Preparation
