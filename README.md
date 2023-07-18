@@ -26,7 +26,7 @@ And FaceCoresetNet is trained on a subset of WebFace4M dataset.
 
 - Pretrained Model (You need both):
   - Precomputed Class Center for WebFace4M subset: [center_WebFace4MAdaFace_webface4m_subset.pth](https://drive.google.com/file/d/1WmiWjLSsfQU2PTwQAvnrep9u6Jfvd3tR/view?usp=share_link)
-  - Pretrained FaceCoresetNet model:  put link here
+  - Pretrained FaceCoresetNet model:  [FaceCoresetNet.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
 
 Place these two files under `pretrained_models/`
 ```
