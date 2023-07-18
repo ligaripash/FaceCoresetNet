@@ -1,20 +1,12 @@
-import sys
 import os
 import torch
-import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 from pytorch_lightning.core import LightningModule
 from torch.nn import CrossEntropyLoss
-import evaluate_utils
 import head
-import main_template
 import net_template as net
-import numpy as np
 import utils
-from validation_mixed.validate_IJB_BC_compute_templates import validate_model_ijb
-#import wandb
-from datetime import datetime
-import main_template
+from validation_IJBB_IJBC.validate_IJB_BC_compute_templates import validate_model_ijb
 
 
 
@@ -49,7 +41,7 @@ class FaceCoresetNet(LightningModule):
         elif self.hparams.train_data_path == 'WebFace4M':
             assert not self.hparams.train_data_subset
             class_num = 205990
-        elif self.hparams.train_data_path == 'webface4m_subset_images':
+        elif os.path.basename(self.hparams.train_data_path) == 'webface4m_subset_images':
             class_num = 10000
         else:
             raise ValueError('Check your train_data_path', self.hparams.train_data_path)
@@ -181,7 +173,7 @@ class FaceCoresetNet(LightningModule):
                    'train_loss': loss_train,
                    'gamma': self.aggregate_model.gamma.float().detach().cpu(),
                        'tau': self.aggregate_model.tau.sigmoid().float().detach().cpu(),
-                       'h':self.hparams.h})
+                       'h': self.hparams.h})
 
 
 

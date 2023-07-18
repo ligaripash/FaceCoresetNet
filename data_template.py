@@ -12,7 +12,6 @@ import torch
 from PIL import Image
 import cv2
 import pandas as pd
-import evaluate_utils
 
 
 class TemplateBatch(object):
@@ -53,6 +52,7 @@ class TemplateBatch(object):
 
 
     def add_noise(self, sample):
+        #gil - no noise
         if random.random() > 1.0:
             sample = self.gaussian_noise(sample)
         return sample
@@ -123,10 +123,8 @@ class TemplateBatch(object):
             clip = self.create_clip(sample_image, clip_size)
             fixed_size_template.append(clip)
 
-        try:
-            template_tensor = torch.cat(fixed_size_template, dim=0)
-        except:
-            pass
+        template_tensor = torch.cat(fixed_size_template, dim=0)
+
         return template_tensor
 
 
@@ -188,22 +186,22 @@ class DataModule(pl.LightningDataModule):
         self.concat_mem_file_name = concat_mem_file_name
 
 
-    def prepare_data(self):
-        # call this once to convert val_data to memfile for saving memory
-        if not os.path.isdir(os.path.join(self.data_root, self.val_data_path, 'agedb_30', 'memfile')):
-            print('making validation data memfile')
-            evaluate_utils.get_val_data(os.path.join(self.data_root, self.val_data_path))
-
-        if not os.path.isfile(self.concat_mem_file_name):
-            # create a concat memfile
-            concat = []
-            for key in ['agedb_30', 'cfp_fp', 'lfw', 'cplfw', 'calfw']:
-                np_array, issame = evaluate_utils.get_val_pair(path=os.path.join(self.data_root, self.val_data_path),
-                                                               name=key,
-                                                               use_memfile=False)
-                concat.append(np_array)
-            concat = np.concatenate(concat)
-            evaluate_utils.make_memmap(self.concat_mem_file_name, concat)
+    # def prepare_data(self):
+    #     # call this once to convert val_data to memfile for saving memory
+    #     if not os.path.isdir(os.path.join(self.data_root, self.val_data_path, 'agedb_30', 'memfile')):
+    #         print('making validation data memfile')
+    #         evaluate_utils.get_val_data(os.path.join(self.data_root, self.val_data_path))
+    #
+    #     if not os.path.isfile(self.concat_mem_file_name):
+    #         # create a concat memfile
+    #         concat = []
+    #         for key in ['agedb_30', 'cfp_fp', 'lfw', 'cplfw', 'calfw']:
+    #             np_array, issame = evaluate_utils.get_val_pair(path=os.path.join(self.data_root, self.val_data_path),
+    #                                                            name=key,
+    #                                                            use_memfile=False)
+    #             concat.append(np_array)
+    #         concat = np.concatenate(concat)
+    #         evaluate_utils.make_memmap(self.concat_mem_file_name, concat)
 
 
     def setup(self, stage=None):
@@ -253,11 +251,12 @@ class DataModule(pl.LightningDataModule):
                 self.train_dataset.class_to_idx = new_class_to_idx
 
             print('creating val dataset')
-            self.val_dataset = val_dataset(self.data_root, self.val_data_path, self.concat_mem_file_name)
+
+#            self.val_dataset = val_dataset(self.data_root, self.val_data_path, self.concat_mem_file_name)
 
         # Assign Test split(s) for use in Dataloaders
-        if stage == 'test' or stage is None:
-            self.test_dataset = test_dataset(self.data_root, self.val_data_path, self.concat_mem_file_name)
+        # if stage == 'test' or stage is None:
+        #     self.test_dataset = test_dataset(self.data_root, self.val_data_path, self.concat_mem_file_name)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True,
@@ -292,35 +291,35 @@ def train_dataset(data_root, train_data_path,
     return train_dataset
 
 
-def val_dataset(data_root, val_data_path, concat_mem_file_name):
-    val_data = evaluate_utils.get_val_data(os.path.join(data_root, val_data_path))
-    # theses datasets are already normalized with mean 0.5, std 0.5
-    age_30, cfp_fp, lfw, age_30_issame, cfp_fp_issame, lfw_issame, cplfw, cplfw_issame, calfw, calfw_issame = val_data
-    val_data_dict = {
-        'agedb_30': (age_30, age_30_issame),
-        "cfp_fp": (cfp_fp, cfp_fp_issame),
-        "lfw": (lfw, lfw_issame),
-        "cplfw": (cplfw, cplfw_issame),
-        "calfw": (calfw, calfw_issame),
-    }
-    val_dataset = FiveValidationDataset(val_data_dict, concat_mem_file_name)
+# def val_dataset(data_root, val_data_path, concat_mem_file_name):
+#     val_data = evaluate_utils.get_val_data(os.path.join(data_root, val_data_path))
+#     # theses datasets are already normalized with mean 0.5, std 0.5
+#     age_30, cfp_fp, lfw, age_30_issame, cfp_fp_issame, lfw_issame, cplfw, cplfw_issame, calfw, calfw_issame = val_data
+#     val_data_dict = {
+#         'agedb_30': (age_30, age_30_issame),
+#         "cfp_fp": (cfp_fp, cfp_fp_issame),
+#         "lfw": (lfw, lfw_issame),
+#         "cplfw": (cplfw, cplfw_issame),
+#         "calfw": (calfw, calfw_issame),
+#     }
+#     val_dataset = FiveValidationDataset(val_data_dict, concat_mem_file_name)
+#
+#     return val_dataset
 
-    return val_dataset
 
-
-def test_dataset(data_root, val_data_path, concat_mem_file_name):
-    val_data = evaluate_utils.get_val_data(os.path.join(data_root, val_data_path))
-    # theses datasets are already normalized with mean 0.5, std 0.5
-    age_30, cfp_fp, lfw, age_30_issame, cfp_fp_issame, lfw_issame, cplfw, cplfw_issame, calfw, calfw_issame = val_data
-    val_data_dict = {
-        'agedb_30': (age_30, age_30_issame),
-        "cfp_fp": (cfp_fp, cfp_fp_issame),
-        "lfw": (lfw, lfw_issame),
-        "cplfw": (cplfw, cplfw_issame),
-        "calfw": (calfw, calfw_issame),
-    }
-    val_dataset = FiveValidationDataset(val_data_dict, concat_mem_file_name)
-    return val_dataset
+# def test_dataset(data_root, val_data_path, concat_mem_file_name):
+#     val_data = evaluate_utils.get_val_data(os.path.join(data_root, val_data_path))
+#     # theses datasets are already normalized with mean 0.5, std 0.5
+#     age_30, cfp_fp, lfw, age_30_issame, cfp_fp_issame, lfw_issame, cplfw, cplfw_issame, calfw, calfw_issame = val_data
+#     val_data_dict = {
+#         'agedb_30': (age_30, age_30_issame),
+#         "cfp_fp": (cfp_fp, cfp_fp_issame),
+#         "lfw": (lfw, lfw_issame),
+#         "cplfw": (cplfw, cplfw_issame),
+#         "calfw": (calfw, calfw_issame),
+#     }
+#     val_dataset = FiveValidationDataset(val_data_dict, concat_mem_file_name)
+#     return val_dataset
 
 
 class CustomImageFolderDataset(datasets.ImageFolder):
@@ -399,6 +398,7 @@ class CustomImageFolderDataset(datasets.ImageFolder):
         if np.random.random() < self.crop_augmentation_prob:
             # RandomResizedCrop augmentation
             new = np.zeros_like(np.array(sample))
+            #orig_W, orig_H = F._get_image_size(sample)
             orig_W, orig_H = sample.size
             i, j, h, w = self.random_resized_crop.get_params(sample,
                                                             self.random_resized_crop.scale,

@@ -403,10 +403,10 @@ class TemplateAggregateModel(nn.Module):
         self.ur_center = nn.Parameter(torch.empty(embedding_size))
         self.dist_from_ur_center_norm_size_balance = nn.Parameter(torch.logit(torch.tensor(0.2)))
         #nn.init.trunc_normal_(self.ur_center)
-        with open('/home/gilsh/std_low_detectability_ir101_ms1mv2.pickle', 'rb') as f:
-             self.ur_center_empirical = torch.tensor(pickle.load(f))
-             self.ur_center = nn.Parameter(self.ur_center_empirical)
-             self.ur_center.requires_grad = False
+        # with open('/home/gilsh/std_low_detectability_ir101_ms1mv2.pickle', 'rb') as f:
+        #      self.ur_center_empirical = torch.tensor(pickle.load(f))
+        #      self.ur_center = nn.Parameter(self.ur_center_empirical)
+        #      self.ur_center.requires_grad = False
             #self.ur_center = self.ur_center_empirical
 
         #self.encoder_layer = nn.TransformerEncoderLayer(d_model=embedding_size, nhead=8, batch_first=True, dropout=0.2)

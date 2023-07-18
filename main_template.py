@@ -18,6 +18,11 @@ from datetime import datetime
 import os
 from fvcore.nn import FlopCountAnalysis
 from fvcore.nn import flop_count_table
+from pytorch_lightning.strategies import DDPStrategy
+
+
+
+
 
 import sys
 
@@ -36,18 +41,20 @@ def main(args):
         datetime.now().strftime("%Y%m%d-%H%M%S"),
         os.path.basename(hparams.output_dir)
     ])
+
     if debugger_is_active():
         wandb_mode = 'disabled'
     else:
         wandb_mode = 'online'
 
-
     print('wandb_mode', wandb_mode)
+
     #log_wandb_logger = wandb.init(project="set-face-recognition", mode=wandb_mode, name=run_name, id=run_name)
     log_wandb_logger = WandbLogger(project="set-face-recognition", mode=wandb_mode, name=run_name, id=run_name)
 
     #hparams['logger'] = log_wandb_logger
     trainer_mod = train_val.FaceCoresetNet(**hparams)
+
 
     FLOP_COUNT = False
     if FLOP_COUNT:
@@ -73,17 +80,17 @@ def main(args):
     my_loggers = [log_wandb_logger, csv_logger]
     #my_loggers = wandb_logger
     resume_from_checkpoint = hparams.resume_from_checkpoint if hparams.resume_from_checkpoint else None
-
     if resume_from_checkpoint is not None:
-        trainer_mod = trainer_mod.load_from_checkpoint(resume_from_checkpoint,lr=hparams.lr, gamma_lr=hparams.gamma_lr,
-                                                       h=hparams.h)
+        trainer_mod = trainer_mod.load_from_checkpoint(resume_from_checkpoint,lr=hparams.lr, gamma_lr=hparams.gamma_lr, h=hparams.h)
+
+    ddp = DDPStrategy(process_group_backend="gloo", find_unused_parameters=True)
 
     trainer = pl.Trainer(default_root_dir=hparams.output_dir,
                          logger=my_loggers,
                          devices=hparams.devices,
                          max_epochs=hparams.epochs,
                          accelerator=hparams.accelerator,
-                         strategy=hparams.strategy,
+                         strategy=ddp,
                          precision=hparams.precision,
                          fast_dev_run=hparams.fast_dev_run,
                          callbacks=[checkpoint_callback],
@@ -107,7 +114,7 @@ def main(args):
         #trainer.test(ckpt_path='best', datamodule=data_mod)
     else:
         # eval only
-        trainer_mod.load_from_checkpoint(hparams.resume_from_checkpoint)
+        #trainer_mod.load_from_checkpoint(hparams.resume_from_checkpoint, lr=0.023, gamma_lr=0.11)
         print('start evaluating')
         trainer_mod.to('cuda:0')
         trainer_mod.on_train_epoch_end()
