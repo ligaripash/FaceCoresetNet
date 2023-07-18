@@ -32,16 +32,18 @@ class TemplateBatch(object):
             transforms.RandomHorizontalFlip(),
         ])
 
-    def create_clip(self, anchor_image, clip_size):
+    def create_clip(self, anchor_image, clip_size, do_aug_mix=True):
         clip = []
         if self.mode == 'train':
             t = self.transform
         else:
             t = self.transform_val
 
+        frame = anchor_image
         for i in range(clip_size):
             #gil
-            frame = self.aug_mix(anchor_image)
+            if do_aug_mix:
+                frame = self.aug_mix(frame)
             #frame = anchor_image
             frame = t(frame)
             frame = torch.unsqueeze(frame, dim=0)
@@ -118,18 +120,14 @@ class TemplateBatch(object):
         """
         fixed_size_template = []
         current_template_size = 0
-        CREATE_CLIP = False
         while current_template_size < output_template_size:
             sample_image = random.choice(template_images)
             #gil - try without noise
             sample_image = self.add_noise(sample_image)
-            if CREATE_CLIP:
-                clip_size = random.randint(1, output_template_size - current_template_size)
-                current_template_size += clip_size
-                clip = self.create_clip(sample_image, clip_size)
-            else:
-                clip = sample_image
-                current_template_size += 1
+            #clip_size = random.randint(1, output_template_size - current_template_size)
+            clip_size = 1
+            current_template_size += clip_size
+            clip = self.create_clip(sample_image, clip_size, do_aug_mix=False)
 
             fixed_size_template.append(clip)
 
