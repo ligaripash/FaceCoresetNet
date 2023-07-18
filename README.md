@@ -56,6 +56,7 @@ For faster validation please download the IJB AdaFace backbone features:
 - [IJBB-AdaFace-Backbone-Features](https://drive.google.com/file/d/1cPCzGc3mFaJnTW7wRLu_lGTeHcyipNxf/view?usp=drive_link)
 - [IJBC-AdaFace-Backbone-Features](https://drive.google.com/file/d/1AhYmzt0_V_KKAWAPB7Rvc9fx4o5v-pmj/view?usp=drive_link)
 
+Please place both these files in the directory: IJB-Features
 
 Refer to the below code for evaluation.
 ```bash
