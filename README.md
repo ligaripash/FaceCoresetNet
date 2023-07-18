@@ -34,10 +34,6 @@ pretrained_models/
 ├── FaceCoresetNet_AdaFaceWebFace4M.ckpt                         
 └── center_WebFace4MAdaFace_webface4m_subset.pth         
 ```
-
-# Testing on Arbitrary Videos (Demo)
-
-
 # Evaluation
 
 ### IJBB and IJBC
@@ -55,6 +51,11 @@ Place the downloaded files in `<DATA_ROOT>`, i.e
         ├── ijb                                                                                                                             │➜  ffhq mv FFHQ_png_512.zip /hddata/data/ffhq/
         └── meta        
 ```
+
+For faster validation please download the IJB AdaFace backbone features:
+- [IJBB-AdaFace-Backbone-Features](https://drive.google.com/file/d/1cPCzGc3mFaJnTW7wRLu_lGTeHcyipNxf/view?usp=drive_link)
+- [IJBC-AdaFace-Backbone-Features](https://drive.google.com/file/d/1AhYmzt0_V_KKAWAPB7Rvc9fx4o5v-pmj/view?usp=drive_link)
+
 
 Refer to the below code for evaluation.
 ```bash
