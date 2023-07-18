@@ -24,11 +24,9 @@ We release the FaceCoresetNet model pretrained on AdaFace backbone.
 The backbone is trained on WebFace4M dataset. 
 And FaceCoresetNet is trained on a subset of WebFace4M dataset. 
 
-- Pretrained Model (You need both):
-  - Precomputed Class Center for WebFace4M subset: [center_WebFace4MAdaFace_webface4m_subset.pth](https://drive.google.com/file/d/1WmiWjLSsfQU2PTwQAvnrep9u6Jfvd3tR/view?usp=share_link)
-  - Pretrained FaceCoresetNet model:  [FaceCoresetNet.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
+- Pretrained FaceCoresetNet model:  [FaceCoresetNet.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
 
-Place these two files under `pretrained_models/`
+Place FaceCoresetNet.pth under `pretrained_models/`
 ```
 pretrained_models/
 ├── FaceCoresetNet_AdaFaceWebFace4M.ckpt                         
@@ -56,7 +54,7 @@ For faster validation please download the IJB AdaFace backbone features:
 - [IJBB-AdaFace-Backbone-Features](https://drive.google.com/file/d/1cPCzGc3mFaJnTW7wRLu_lGTeHcyipNxf/view?usp=drive_link)
 - [IJBC-AdaFace-Backbone-Features](https://drive.google.com/file/d/1AhYmzt0_V_KKAWAPB7Rvc9fx4o5v-pmj/view?usp=drive_link)
 
-Please place both these files in the directory: IJB-Features
+Please place both these files in the directory: validation_IJBB_IJBC
 
 Refer to the below code for evaluation.
 ```bash
