@@ -116,6 +116,10 @@ class FaceCoresetNet(LightningModule):
 
         if self.training or self.compute_feature_flag:
             embeddings, norms = self.template_model(templates)
+            if self.compute_feature_flag:
+                unnorm_embeddings = embeddings * norms
+                return unnorm_embeddings, embeddings
+
         # unnorm_embeddings = embeddings * norms
         # gating = self.gating(unnorm_embeddings).sigmoid()
         # unnorm_embeddings = unnorm_embeddings * gating
@@ -124,9 +128,6 @@ class FaceCoresetNet(LightningModule):
         #norms = norms.squeeze(-1)
         aggregate_embeddings, aggregate_norms, FPS_sample = self.aggregate_model(embeddings, norms)
 
-        if self.compute_feature_flag:
-            unnorm_embeddings = embeddings * norms
-            return unnorm_embeddings, FPS_sample
 
         if not self.training:
             # small_norms = aggregate_norms < 0
@@ -189,8 +190,8 @@ class FaceCoresetNet(LightningModule):
             self.eval()
             output_dir = '{}/epoch_{}'.format(self.hparams.output_dir, self.current_epoch)
             print('gamma = {}'.format(self.aggregate_model.gamma))
-            scores_ijbb = validate_model_ijb(self, output_dir, self.hparams.ijb_root, dataset_name='IJBB')
-            scores_ijbc = validate_model_ijb(self, output_dir, self.hparams.ijb_root, dataset_name='IJBC')
+            scores_ijbb = validate_model_ijb(self, output_dir, self.hparams.ijb_root, dataset_name='IJBB', args=self.hparams)
+            scores_ijbc = validate_model_ijb(self, output_dir, self.hparams.ijb_root, dataset_name='IJBC', args=self.hparams)
 
 
 

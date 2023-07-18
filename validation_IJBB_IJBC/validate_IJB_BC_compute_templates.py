@@ -103,6 +103,7 @@ def infer_images(model, img_root, landmark_list_path, batch_size, use_flip_test,
     dataloader = prepare_dataloader(img_paths, landmarks, batch_size, num_workers=0, image_size=(112,112))
 
     model.eval()
+    model.compute_feature()
     features = []
     norms = []
     DEBUG = False
@@ -169,6 +170,7 @@ def infer_images(model, img_root, landmark_list_path, batch_size, use_flip_test,
                     break
 #            images = blur_function(images)
             images = images.to("cuda:{}".format(gpu_id))
+            images = images.unsqueeze(0)
             #feature = model(images.to("cuda:{}".format(gpu_id)))
             feature = model(images)
             if isinstance(feature, tuple):
@@ -315,9 +317,9 @@ def load_pretrained_model(model_name='ir50'):
 
 
 def infer_images_or_get_from_pickle(dataset_name, model_name,
-                                    model, img_root, landmark_list_path, batch_size,use_flip_test,fusion_method,gpu_id ):
+                                    model, img_root, landmark_list_path, args ):
     INFER_IMAGE = True
-    precomputed_features_file = '_'.join((dataset_name, model_name, '.pickle'))
+    precomputed_features_file = '_'.join((dataset_name, model_name + '.pickle'))
     precomputed_features_file = os.path.join(os.path.dirname(__file__), precomputed_features_file)
     if os.path.exists(precomputed_features_file):
         INFER_IMAGE = False
@@ -325,10 +327,10 @@ def infer_images_or_get_from_pickle(dataset_name, model_name,
         img_input_feats, faceness_scores, norms = infer_images(model=model,
                                                                img_root=img_root,
                                                                landmark_list_path=landmark_list_path,
-                                                               batch_size=args.batch_size,
-                                                               use_flip_test=args.use_flip_test,
-                                                               fusion_method=args.fusion_method,
-                                                               gpu_id=args.gpu)
+                                                               batch_size=1,
+                                                               use_flip_test=False,
+                                                               fusion_method=None,
+                                                               gpu_id=0)
         data = {}
         data['img_feats'] = img_input_feats
         data['norms'] = norms
@@ -398,7 +400,7 @@ if __name__ == '__main__':
     landmark_list_path = os.path.join(args.data_root, './%s/meta/%s_name_5pts_score.txt' % (dataset_name, dataset_name.lower()))
 
     img_input_feats, faceness_scores, norms = infer_images_or_get_from_pickle(dataset_name, args.model_name,
-                                    model, img_root, landmark_list_path, args.batch_size,args.use_flip_test,args.fusion_method,args.gpu )
+                                    model, img_root, landmark_list_path, args )
 
     #k = kernel.kernel.detach().numpy()
     #img_input_feats = img_input_feats @ k
@@ -417,7 +419,7 @@ if __name__ == '__main__':
 
 
 def validate_model_ijb(model, save_path, ijb_root, dataset_name='IJBB',model_name='ir101_webface4m',
-                       batch_size=1, use_flip_test=False, fusion_method='FaceCoresetNet', gpu=0):
+                       args=None):
     #save_path = './result/{}/{}/{}'.format(args.dataset_name, args.model_name, args.experiment)
     #print('result save_path', save_path)
     os.makedirs(save_path, exist_ok=True)
@@ -426,7 +428,7 @@ def validate_model_ijb(model, save_path, ijb_root, dataset_name='IJBB',model_nam
     landmark_list_path = os.path.join(ijb_root, './%s/meta/%s_name_5pts_score.txt' % (dataset_name, dataset_name.lower()))
 
     img_input_feats, faceness_scores, norms = infer_images_or_get_from_pickle(dataset_name, model_name,
-                                    model, img_root, landmark_list_path, batch_size,use_flip_test,fusion_method,gpu )
+                                    model, img_root, landmark_list_path, args )
 
     #img_feats = img_feats * norms
     # get features and fuse

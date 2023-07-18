@@ -3,6 +3,7 @@ import torch.nn.parallel
 import torch.utils.data
 import torch.utils.data.distributed
 import pytorch_lightning as pl
+from train_val_template import FaceCoresetNet
 import wandb
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import CSVLogger
@@ -10,7 +11,6 @@ from pytorch_lightning import seed_everything
 import config
 import os
 from utils import dotdict
-import train_val_template as train_val
 import data_template as data
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
@@ -53,7 +53,7 @@ def main(args):
     log_wandb_logger = WandbLogger(project="set-face-recognition", mode=wandb_mode, name=run_name, id=run_name)
 
     #hparams['logger'] = log_wandb_logger
-    trainer_mod = train_val.FaceCoresetNet(**hparams)
+    trainer_mod = FaceCoresetNet(**hparams)
 
 
     FLOP_COUNT = False
