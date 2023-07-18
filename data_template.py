@@ -129,6 +129,8 @@ class TemplateBatch(object):
                 clip = self.create_clip(sample_image, clip_size)
             else:
                 clip = sample_image
+                current_template_size += 1
+
             fixed_size_template.append(clip)
 
         template_tensor = torch.cat(fixed_size_template, dim=0)
