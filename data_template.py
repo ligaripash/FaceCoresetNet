@@ -58,37 +58,41 @@ class TemplateBatch(object):
         return sample
 
 
-    def create_fixed_size_template_val(self, image, output_template_size):
-        """
-        Create a fixed size template out of a variable size template
-        Args:
-            template_images: variable size template
-
-        Returns:
-            fixed size template
-
-        Simulate an IJBB style template. The template should contain few 'video clips'. Each clip is created from a
-        separate translated image.
-        When creating a template image, noise should be added to the template to make it challenging for the model to
-        recognize them.
-
-        The algorithm:
-
-        1. Assume N is the required template size
-        2. Sample an image from the template, create a 'clip' out of the image. The size of the clip is kN k in [0,1]
-        3. Sample (1-k)N images add noise to the image
-        """
-        fixed_size_template = []
-        current_template_size = 0
-        while current_template_size < output_template_size:
-            sample_image = image
-            clip_size = random.randint(1, output_template_size - current_template_size)
-            current_template_size += clip_size
-            clip = self.create_clip(sample_image, clip_size)
-            fixed_size_template.append(clip)
-
-        template_tensor = torch.cat(fixed_size_template, dim=0)
-        return template_tensor
+    # def create_fixed_size_template_val(self, image, output_template_size):
+    #     """
+    #     Create a fixed size template out of a variable size template
+    #     Args:
+    #         template_images: variable size template
+    #
+    #     Returns:
+    #         fixed size template
+    #
+    #     Simulate an IJBB style template. The template should contain few 'video clips'. Each clip is created from a
+    #     separate translated image.
+    #     When creating a template image, noise should be added to the template to make it challenging for the model to
+    #     recognize them.
+    #
+    #     The algorithm:
+    #
+    #     1. Assume N is the required template size
+    #     2. Sample an image from the template, create a 'clip' out of the image. The size of the clip is kN k in [0,1]
+    #     3. Sample (1-k)N images add noise to the image
+    #     """
+    #     fixed_size_template = []
+    #     current_template_size = 0
+    #     CREATE_CLIP = False
+    #     while current_template_size < output_template_size:
+    #         sample_image = image
+    #         if CREATE_CLIP:
+    #             clip_size = random.randint(1, output_template_size - current_template_size)
+    #             current_template_size += clip_size
+    #             clip = self.create_clip(sample_image, clip_size)
+    #         else:
+    #             clip = sample_image
+    #         fixed_size_template.append(clip)
+    #
+    #     template_tensor = torch.cat(fixed_size_template, dim=0)
+    #     return template_tensor
 
 
 
@@ -114,13 +118,17 @@ class TemplateBatch(object):
         """
         fixed_size_template = []
         current_template_size = 0
+        CREATE_CLIP = False
         while current_template_size < output_template_size:
             sample_image = random.choice(template_images)
             #gil - try without noise
             sample_image = self.add_noise(sample_image)
-            clip_size = random.randint(1, output_template_size - current_template_size)
-            current_template_size += clip_size
-            clip = self.create_clip(sample_image, clip_size)
+            if CREATE_CLIP:
+                clip_size = random.randint(1, output_template_size - current_template_size)
+                current_template_size += clip_size
+                clip = self.create_clip(sample_image, clip_size)
+            else:
+                clip = sample_image
             fixed_size_template.append(clip)
 
         template_tensor = torch.cat(fixed_size_template, dim=0)
