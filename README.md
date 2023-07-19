@@ -71,22 +71,7 @@ bash scripts/run.sh  # DATA_ROOT and IJB_META_PATH has to be specified.
 # Training from scratch
 
 ## WebFace4M Subset (as in paper)
-
-- **Dataset Preparation**: For training FaceCoresetNet we use pre-computed feature vectors.
-  Using a face recognition model trained on WebFace4M, we extract 512 dim feature vectors on a subset of WebFace4M.
-  - Precomputed training data features (adaface_webface4m_subset_ir101_style35_augmenterv3_fp16): [precomputed_features](https://drive.google.com/file/d/1U615roLaCGYAmcWRVOJWO1jk6e8Oo3sA/view?usp=share_link)
-  - Validation Set (IJBB): [Download](https://forms.gle/7zURRo2tca96ZKyf6)
-
-  - Place the files under `<DATA_ROOT>`
-```
-<DATA_ROOT>
-├── adaface_webface4m_subset_ir101_style35_augmenterv3_fp16/
-└── IJB
-    ├── aligned (only needed during training)                                                                                                                      │➜  ffhq mv FFHQ_png_512.zip /hddata/data/ffhq/
-    └── insightface_helper
-        ├── ijb                                                                                                                             │➜  ffhq mv FFHQ_png_512.zip /hddata/data/ffhq/
-        └── meta        
-```
+The model was trained on a WebFace4M subset that can be downloaded here [AdaFace4M_subset](https://drive.google.com/file/d/1LuhyxoTdMoVTsrlmZ5_F26Oia3bXsIpu/view?usp=share_link).
 
 - Get pretrained face recognition model backbone
   - AdaFace trained on WebFace4M [AdaFaceWebFace4M.ckpt](https://drive.google.com/file/d/19AfGaGZjDqwPQR00kck0GBknePmQOFnU/view?usp=share_link)
@@ -99,13 +84,3 @@ cd FaceCoresetNet
 bash scripts/run.sh  # DATA_ROOT has to be specified. 
 ```
 
-## Extract features using different model
-The raw WebFace4M subset dataset used in the paper can be downloaded here [AdaFace4M_subset](https://drive.google.com/file/d/1LuhyxoTdMoVTsrlmZ5_F26Oia3bXsIpu/view?usp=share_link).
-
-We also provide the preprocessing code for creating
-1. precomputed feature blob 
-   1. First you should extract individual images from the above mxdataset, using [preprocess/extract_images.py](./preprocess/extract_images.py)
-   2. Make sure that images are saved correctly (check the color channel)
-   3. Then use [preprocess/precompute_features.py](./preprocess/precompute_features.py) to save the features.
-2. class center 
-   1. [preprocess/make_center.py](./preprocess/make_center.py) creates a `pth` file with class center for the dataset. This will be used in loss calculation.
