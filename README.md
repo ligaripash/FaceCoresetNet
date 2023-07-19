@@ -55,6 +55,12 @@ For faster validation please download the IJB AdaFace backbone features:
 
 Please place both these files in the directory: validation_IJBB_IJBC
 
+```
+validation_IJBB_IJBC/
+├── IJBB-AdaFace-Backbone-Features.pickle
+└── IJBC-AdaFace-Backbone-Features.pickle                  
+```
+
 Refer to the below code for evaluation.
 ```bash
 cd validation_IJBB_IJBC
