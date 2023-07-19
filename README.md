@@ -24,13 +24,12 @@ We release the FaceCoresetNet model pretrained on AdaFace backbone.
 The backbone is trained on WebFace4M dataset. 
 And FaceCoresetNet is trained on a subset of WebFace4M dataset. 
 
-- Pretrained FaceCoresetNet model:  [FaceCoresetNet.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
+- Pretrained FaceCoresetNet model:  [FaceCoresetNet_AdaFaceWebFace4M.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
 
 Place FaceCoresetNet.pth under `pretrained_models/`
 ```
 pretrained_models/
 ├── FaceCoresetNet_AdaFaceWebFace4M.ckpt                         
-└── center_WebFace4MAdaFace_webface4m_subset.pth         
 ```
 # Evaluation
 
