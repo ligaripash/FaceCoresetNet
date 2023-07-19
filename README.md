@@ -24,20 +24,13 @@ We release the FaceCoresetNet model pretrained on AdaFace backbone.
 The backbone is trained on WebFace4M dataset. 
 And FaceCoresetNet is trained on a subset of WebFace4M dataset. 
 
-- Pretrained Model (You need both):
-  - Precomputed Class Center for WebFace4M subset: [center_WebFace4MAdaFace_webface4m_subset.pth](https://drive.google.com/file/d/1WmiWjLSsfQU2PTwQAvnrep9u6Jfvd3tR/view?usp=share_link)
-  - Pretrained FaceCoresetNet model:  [FaceCoresetNet.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
+- Pretrained FaceCoresetNet model:  [FaceCoresetNet_AdaFaceWebFace4M.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
 
-Place these two files under `pretrained_models/`
+Place FaceCoresetNet.pth under `pretrained_models/`
 ```
 pretrained_models/
 ├── FaceCoresetNet_AdaFaceWebFace4M.ckpt                         
-└── center_WebFace4MAdaFace_webface4m_subset.pth         
 ```
-
-# Testing on Arbitrary Videos (Demo)
-
-
 # Evaluation
 
 ### IJBB and IJBC
@@ -56,6 +49,18 @@ Place the downloaded files in `<DATA_ROOT>`, i.e
         └── meta        
 ```
 
+For faster validation please download the IJB AdaFace backbone features:
+- [IJBB-AdaFace-Backbone-Features](https://drive.google.com/file/d/1cPCzGc3mFaJnTW7wRLu_lGTeHcyipNxf/view?usp=drive_link)
+- [IJBC-AdaFace-Backbone-Features](https://drive.google.com/file/d/1AhYmzt0_V_KKAWAPB7Rvc9fx4o5v-pmj/view?usp=drive_link)
+
+Please place both these files in the directory: validation_IJBB_IJBC
+
+```
+validation_IJBB_IJBC/
+├── IJBB-AdaFace-Backbone-Features.pickle
+└── IJBC-AdaFace-Backbone-Features.pickle                  
+```
+
 Refer to the below code for evaluation.
 ```bash
 cd validation_IJBB_IJBC
@@ -66,22 +71,7 @@ bash scripts/run.sh  # DATA_ROOT and IJB_META_PATH has to be specified.
 # Training from scratch
 
 ## WebFace4M Subset (as in paper)
-
-- **Dataset Preparation**: For training FaceCoresetNet we use pre-computed feature vectors.
-  Using a face recognition model trained on WebFace4M, we extract 512 dim feature vectors on a subset of WebFace4M.
-  - Precomputed training data features (adaface_webface4m_subset_ir101_style35_augmenterv3_fp16): [precomputed_features](https://drive.google.com/file/d/1U615roLaCGYAmcWRVOJWO1jk6e8Oo3sA/view?usp=share_link)
-  - Validation Set (IJBB): [Download](https://forms.gle/7zURRo2tca96ZKyf6)
-
-  - Place the files under `<DATA_ROOT>`
-```
-<DATA_ROOT>
-├── adaface_webface4m_subset_ir101_style35_augmenterv3_fp16/
-└── IJB
-    ├── aligned (only needed during training)                                                                                                                      │➜  ffhq mv FFHQ_png_512.zip /hddata/data/ffhq/
-    └── insightface_helper
-        ├── ijb                                                                                                                             │➜  ffhq mv FFHQ_png_512.zip /hddata/data/ffhq/
-        └── meta        
-```
+The model was trained on a WebFace4M subset that can be downloaded here [AdaFace4M_subset](https://drive.google.com/file/d/1LuhyxoTdMoVTsrlmZ5_F26Oia3bXsIpu/view?usp=share_link).
 
 - Get pretrained face recognition model backbone
   - AdaFace trained on WebFace4M [AdaFaceWebFace4M.ckpt](https://drive.google.com/file/d/19AfGaGZjDqwPQR00kck0GBknePmQOFnU/view?usp=share_link)
@@ -94,13 +84,3 @@ cd FaceCoresetNet
 bash scripts/run.sh  # DATA_ROOT has to be specified. 
 ```
 
-## Extract features using different model
-The raw WebFace4M subset dataset used in the paper can be downloaded here [AdaFace4M_subset](https://drive.google.com/file/d/1LuhyxoTdMoVTsrlmZ5_F26Oia3bXsIpu/view?usp=share_link).
-
-We also provide the preprocessing code for creating
-1. precomputed feature blob 
-   1. First you should extract individual images from the above mxdataset, using [preprocess/extract_images.py](./preprocess/extract_images.py)
-   2. Make sure that images are saved correctly (check the color channel)
-   3. Then use [preprocess/precompute_features.py](./preprocess/precompute_features.py) to save the features.
-2. class center 
-   1. [preprocess/make_center.py](./preprocess/make_center.py) creates a `pth` file with class center for the dataset. This will be used in loss calculation.
