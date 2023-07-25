@@ -43,7 +43,7 @@ class TemplateBatch(object):
         for i in range(clip_size):
             #gil
             if do_aug_mix:
-                frame = self.aug_mix(frame)
+                frame = self.aug_mix(anchor_image)
             #frame = anchor_image
             frame = t(frame)
             frame = torch.unsqueeze(frame, dim=0)
