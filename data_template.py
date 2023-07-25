@@ -120,14 +120,15 @@ class TemplateBatch(object):
         """
         fixed_size_template = []
         current_template_size = 0
+        max_clip_size = 3
         while current_template_size < output_template_size:
             sample_image = random.choice(template_images)
             #gil - try without noise
             sample_image = self.add_noise(sample_image)
-            #clip_size = random.randint(1, output_template_size - current_template_size)
-            clip_size = 1
+            clip_size_rand = random.randint(1, output_template_size - current_template_size)
+            clip_size = min(max_clip_size, clip_size_rand)
             current_template_size += clip_size
-            clip = self.create_clip(sample_image, clip_size, do_aug_mix=False)
+            clip = self.create_clip(sample_image, clip_size, do_aug_mix=True)
 
             fixed_size_template.append(clip)
 
