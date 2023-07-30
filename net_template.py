@@ -389,12 +389,15 @@ class TemplateAggregateModel(nn.Module):
     """
     Get a set of tramplate features and aggregate them to one descriptor for the template
     """
-    def __init__(self, embedding_size=512, coreset_size=5):
+    def __init__(self, embedding_size=512, coreset_size=5, gamma=-1.0):
         super(TemplateAggregateModel, self).__init__()
         self.coreset_size = coreset_size
         self.embedding_size = embedding_size
         self.gamma_base = torch.tensor(0.0)
-        self.gamma = nn.Parameter(torch.tensor(0.01))
+        if gamma == -1.0:
+            self.gamma = nn.Parameter(torch.tensor(0.01))
+        else:
+            self.gamma = torch.tensor(gamma)
         self.tau = nn.Parameter(torch.tensor(0.0))
         self.feature_norm_normalizer = nn.Parameter(torch.logit(torch.tensor(1/20.0)))
         # self.gamma = nn.Parameter(torch.tensor(0.2))

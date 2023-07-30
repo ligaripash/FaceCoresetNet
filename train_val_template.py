@@ -84,7 +84,7 @@ class FaceCoresetNet(LightningModule):
         #This model aggregates [N, T, 512] template embeddings and produce a simgle aggregate per template
         #[N, 512]
         embedding_size = 512
-        self.aggregate_model = net.TemplateAggregateModel(embedding_size, self.hparams.coreset_size)
+        self.aggregate_model = net.TemplateAggregateModel(embedding_size, self.hparams.coreset_size, self.hparams.gamma)
 
 
         #Freeze weights of the backbone. We want to train only the aggregation module

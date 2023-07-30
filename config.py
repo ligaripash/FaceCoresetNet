@@ -26,6 +26,7 @@ def get_args():
     parent_parser.add_argument('--lr',help='learning rate',default=1e-1, type=float)
     parent_parser.add_argument('--lr_milestones', default='30', type=str, help='epochs for reducing LR')
     parent_parser.add_argument('--lr_gamma', default=0.1, type=float, help='multiply when reducing LR')
+    parent_parser.add_argument('--gamma', default=-1, type=float, help='If gamma == -1 it is train otherwise fixed')
 
     parent_parser.add_argument('--num_workers', default=16, type=int)
     parent_parser.add_argument('--precision', default=32, type=int)
