@@ -181,8 +181,9 @@ class FaceCoresetNet(LightningModule):
 
         return loss_train
 
-    def on_after_backward(self):
-        self.log_dict({'gamma_gradint_norm': self.aggregate_model.gamma.grad.data.norm(2)})
+    #def on_after_backward(self):
+
+        #self.log_dict({'gamma_gradint_norm': self.aggregate_model.gamma.grad.data.norm(2)})
 
 
     def on_train_epoch_end(self):
@@ -298,7 +299,7 @@ class FaceCoresetNet(LightningModule):
                                                  milestones=self.hparams.lr_milestones,
                                                  gamma=self.hparams.lr_gamma)
 
-        grad_hook1 = self.aggregate_model.gamma.register_hook(lambda grad: print("Grad is {0}".format(grad)))
+        #grad_hook1 = self.aggregate_model.gamma.register_hook(lambda grad: print("Grad is {0}".format(grad)))
 
 
         return [optimizer], [scheduler]
