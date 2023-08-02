@@ -68,7 +68,7 @@ def main(args):
 
 
     # create model checkpoint callback
-    monitor = 'val_acc'
+    monitor = '10 ** -6 IJBC'
     mode = 'max'
     save_top_k = hparams.epochs+1 if hparams.save_all_models else 1
     checkpoint_callback = ModelCheckpoint(dirpath=hparams.output_dir, save_last=True,
