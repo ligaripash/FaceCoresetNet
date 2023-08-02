@@ -37,10 +37,11 @@ def main(args):
     if hparams.seed is not None:
         seed_everything(hparams.seed, workers=True)
 
-    run_name = '-'.join([
-        datetime.now().strftime("%Y%m%d-%H%M%S"),
-        os.path.basename(hparams.output_dir)
-    ])
+    # run_name = '-'.join([
+    #     datetime.now().strftime("%Y%m%d-%H%M%S"),
+    #     os.path.basename(hparams.output_dir)
+    # ])
+    run_name = os.path.basename(hparams.output_dir)
 
     if debugger_is_active():
         wandb_mode = 'disabled'
