@@ -42,11 +42,9 @@ def main(args):
     #     os.path.basename(hparams.output_dir)
     # ])
     run_name = os.path.basename(hparams.output_dir)
-
-    if debugger_is_active():
+    wandb_mode = 'online'
+    if debugger_is_active() or hparams.wandb_disable:
         wandb_mode = 'disabled'
-    else:
-        wandb_mode = 'online'
 
     print('wandb_mode', wandb_mode)
 
@@ -69,7 +67,8 @@ def main(args):
 
 
     # create model checkpoint callback
-    monitor = '10 ** -6 IJBC'
+    #monitor = '10 ** -6 IJBC'
+    monitor = None
     mode = 'max'
     save_top_k = hparams.epochs+1 if hparams.save_all_models else 1
     checkpoint_callback = ModelCheckpoint(dirpath=hparams.output_dir, save_last=True,
