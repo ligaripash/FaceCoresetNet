@@ -180,9 +180,13 @@ class TransformerDecoderLayerOrig(Module):
         k = template_features + norm_encoding_template
         v = template_features
         #v = template_features + norm_encoding_template
-        q = self.norm2(q + self._my_mha_block1(q, k, v))
+        q = self.norm2(core_template + self._my_mha_block1(q, k, v))
 
-        #q = self.norm3(core_template + self._my_mha_block2(q, k, v))
+        q = self.norm3(q + self._sa_block2(q, None, None, None))
+        # q = self.norm2(q + self._sa_block2(q, None, None, None))
+        #v = template_features + norm_encoding_template
+        q = self.norm4(core_template + self._my_mha_block2(q, k, v))
+
 
         #v = template_features
         #q = self.norm4(core_template + self._my_mha_block3(q, k, v))
