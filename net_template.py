@@ -7,7 +7,7 @@ from torch.nn import Sequential
 from torch.nn import Conv2d, Linear
 from torch.nn import BatchNorm1d, BatchNorm2d
 from torch.nn import ReLU, Sigmoid
-from torch.nn import Module
+
 from torch.nn import PReLU
 from typing import Optional, Any, Union, Callable
 import numpy as np
@@ -16,15 +16,13 @@ from torch.nn import functional as F
 from torch.nn import ReLU
 from torch.nn import Module
 from torch.nn import MultiheadAttention
-from torch.nn import ModuleList
-from torch.nn.init import xavier_uniform_
 from torch.nn import Dropout
 from torch.nn import Linear
 from torch.nn import LayerNorm
 
 import pickle
 import os
-torch.autograd.set_detect_anomaly(True)
+#torch.autograd.set_detect_anomaly(True)
 
 
 
@@ -38,24 +36,6 @@ def angluar_dist_with_norm(norm, a, b):
     return dist
 
 
-def incremental_farthest_search_norms(points, k, norms):
-    remaining_points = points[:].tolist()
-    norms = norms[:].tolist()
-    solution_set = []
-    max_index = np.argmax(norms)
-    solution_set.append(remaining_points.pop(max_index))
-    norms.pop(max_index)
-    for _ in range(k-1):
-        #distances = [angluar_dist(p, solution_set[0]) for p in remaining_points]
-        distances = [np.Inf] * len(remaining_points)
-        for i, p in enumerate(remaining_points):
-            norm = norms[i]
-            for j, s in enumerate(solution_set):
-                distances[i] = min(distances[i], angluar_dist_with_norm(norm, p, s))
-        max_index = distances.index(max(distances))
-        solution_set.append(remaining_points.pop(max_index))
-        norms.pop(max_index)
-    return np.array(solution_set)
 
 def get_proposal_pos_embed(real_norms, embed_dim):
     # batch_size = real_norms.size(0)
@@ -176,34 +156,13 @@ class TransformerDecoderLayerOrig(Module):
         #for the template is larger than the core template, do cross attention
         q = core_template + norm_encoding_core_template
         q = self.norm1(q + self._sa_block1(q, None, None, None))
-        # q = self.norm2(q + self._sa_block2(q, None, None, None))
         k = template_features + norm_encoding_template
         v = template_features
-        #v = template_features + norm_encoding_template
         q = self.norm2(core_template + self._my_mha_block1(q, k, v))
-
-        q = self.norm3(q + self._sa_block2(q, None, None, None))
-        # q = self.norm2(q + self._sa_block2(q, None, None, None))
-        #v = template_features + norm_encoding_template
-        q = self.norm4(core_template + self._my_mha_block2(q, k, v))
-
-
-        #v = template_features
-        #q = self.norm4(core_template + self._my_mha_block3(q, k, v))
-        #q = self.norm4(q + self._my_mha_block3(q, k, v))
 
         return q
 
-        # if self.norm_first:
-        #     x = x + self._sa_block(self.norm1(x), None, None, None)
-        #     x = x + self._mha_block(self.norm2(x), None, None, None, None)
-        #     x = x + self._ff_block(self.norm3(x))
-        # else:
-        #     x = self.norm1(x + self._sa_block(x, None, None, None))
-        #     x = self.norm2(x + self._my_mha_block(x, memory, None, None, None))
-        #     x = self.norm3(x + self._ff_block(x))
-        #
-        # return x
+
 
     def orig_forward(
         self,
@@ -301,9 +260,6 @@ class TransformerDecoderLayerOrig(Module):
 
 
 
-def _get_clones(module, N):
-    # FIXME: copy.deepcopy() is not defined on nn.module
-    return ModuleList([copy.deepcopy(module) for i in range(N)])
 
 
 def _get_activation_fn(activation: str) -> Callable[[Tensor], Tensor]:
@@ -410,20 +366,7 @@ class TemplateAggregateModel(nn.Module):
         #self.gamma = nn.Parameter(torch.tensor(0.0))
         self.ur_center = nn.Parameter(torch.empty(embedding_size))
         self.dist_from_ur_center_norm_size_balance = nn.Parameter(torch.logit(torch.tensor(0.2)))
-        #nn.init.trunc_normal_(self.ur_center)
-        # with open('/home/gilsh/std_low_detectability_ir101_ms1mv2.pickle', 'rb') as f:
-        #      self.ur_center_empirical = torch.tensor(pickle.load(f))
-        #      self.ur_center = nn.Parameter(self.ur_center_empirical)
-        #      self.ur_center.requires_grad = False
-            #self.ur_center = self.ur_center_empirical
-
-        #self.encoder_layer = nn.TransformerEncoderLayer(d_model=embedding_size, nhead=8, batch_first=True, dropout=0.2)
-        #self.my_decoder_layer = MyTransformerDecoderLayer(d_model=embedding_size, n_heads=8,d_ffn=1024,dropout=0.2 )
         self.decoder_layer1 = TransformerDecoderLayerOrig(d_model=embedding_size, nhead=8, batch_first=True, dropout=0.1,dim_feedforward=1024)
-        #self.decoder_layer2 = nn.TransformerDecoderLayer(d_model=embedding_size, nhead=8, batch_first=True)
-        #self.feature_agg = MultiHeadAttAggregate(d_model=512, nhead=8)
-        #self.pool_vector_scaler = nn.Linear(512, 1)
-        #self.pos_trans = torch.nn.Linear(embedding_size, embedding_size)
         self.pos_trans_norm = nn.LayerNorm(embedding_size)
         self.quality_measure = nn.Linear(embedding_size, 1)
 
@@ -476,91 +419,10 @@ class TemplateAggregateModel(nn.Module):
         #dist = dist.clip(0,1)
         return quality_dist
 
-    def pop(self, t, max_indices, non_max_indices):
-        """
-        The input is a [N, T, 512] tensor with index to the template dimension.
-        Gather the indexed values and remove them from the tensor.
-        pop index
-        Args:
-            t:
-            index:
-
-        Returns:
-            (N, 1, 512) poped tensor
-            (N, T-1, 512) tensor
-
-        """
-        if len(max_indices.shape) != len(t.shape):
-            a = max_indices[:, :, None].expand([max_indices.shape[0], max_indices.shape[1], t.shape[-1]])
-            try:
-                popped_tensor = torch.gather(t, 1, a)
-            except:
-                pass
-
-            a = non_max_indices[:, :, None].expand([non_max_indices.shape[0], non_max_indices.shape[1], t.shape[-1]])
-            tensor_after_pop = torch.gather(t, 1, a)
-        else:
-            popped_tensor = torch.gather(t, 1, max_indices)
-            tensor_after_pop = torch.gather(t, 1, non_max_indices)
-
-        return popped_tensor, tensor_after_pop
-
-    def incremental_farthest_search_norms(self, points, k, norms):
-        batch_size = points.shape[0]
-        template_size = points.shape[1]
-        remaining_points = points
-        #The solution set has a shape of (#batch, k, 512) and holds the output fps sample
-        solution_set = torch.empty((points.shape[0], k, points.shape[-1]), device=points.device, requires_grad=True)
-
-        #The input we sample from - shape (batch, N, 512)
-        input_points = points
-        N = points.shape[1]
-
-        #We use a mask in the size of the input to mark which points belong to the output
-        #We start by adding the points with max norms (the best quality)
-
-        solution_mask = torch.nn.functional.gumbel_softmax(100000000 * norms, hard=True, tau=0.000000000000001, dim=1).bool()
-        #We now have a single feature for each batch in our solution.
-        #We perform an additional k-1 iterations so we have k features in our solution in the end
-        #In each iteration we choose the feature which is farthest from the current solution
-
-        remaining_points = input_points[~solution_mask].reshape(batch_size, N-1,points.shape[2] )
-        remaining_norms = norms[~solution_mask].reshape(batch_size, N-1)
-        solution_points = input_points[solution_mask]
-        solution_norms = norms[solution_mask]
-
-        for solution_size in range(1, k):
-            remaining_points_count = N - solution_size
-            distances = torch.ones(batch_size, remaining_points_count, device=points.device) * torch.tensor(torch.finfo(float).max)
-            for i in range(remaining_points_count):
-                #iteration on the remaining points (not in the solution set):
-                #Take a point from the remaining point and compute the distances to all points in the solution set
-                p = remaining_points[:,i,:]
-                #norm = remaining_norms[:,i]
-            #for i, p in enumerate(remaining_points):
-                for j in range(solution_size):
-                    # For each point outside the solution set, compute the distance to each point the solution set
-                #for j, s in enumerate(solution_set):
-                    s = solution_set[:,j, :]
-                    dist_p_s = self.angluar_dist_with_norm(p, s)
-                    distances_new = distances.clone()
-                    distances_new[:,i] = torch.min(distances[:,i], dist_p_s)
-                    distances = distances_new
-
-            #Now distances holds for each point in the 'remaining points' the minimal distance to the solution set
-            #We have to choose the points farther away from the solution set
-            #max_values, max_indices = torch.max(distances, dim=1)
-            max_mask = torch.nn.functional.gumbel_softmax(100000000 * distances, hard=True, tau=0.000000000000001, dim=1)
-            selected_point = remaining_points[max_mask]
-            solution_points = torch.cat((solution_points, selected_point),1)
-            selected_norm = remaining_norms[max_mask]
-            solution_norms = torch.cat((solution_norms, selected_norm), 1)
-
-        return solution_points
 
 #Pytorch farthest point sampling
 
-    def farthest_point_sample_copilot(self, x, npoint, norms):
+    def differential_farthest_point_sample(self, x, npoint, norms):
 
         """
         Input:
@@ -583,142 +445,31 @@ class TemplateAggregateModel(nn.Module):
         norms = norms.unsqueeze(-1)
         max_dist_mask = torch.nn.functional.gumbel_softmax(norms * scaler, hard=True, tau=tau,
                                                            dim=1)
-        #max_dist_mask = max_dist_mask.unsqueeze(-1)
-        #max_dist_mask.requires_grad = True
-        # grad_hook3 = max_dist_mask.register_hook(
-        #     lambda grad: print("max dist Grad is {0}".format(grad.data.norm(2))))
-
-        # centroids = torch.zeros(B, npoint, C, device=x.device)
-        # centroids.requires_grad = True
-        # grad_hook4 = centroids.register_hook(
-        #     lambda grad: print("centroids Grad is {0}".format(grad.data.norm(2))))
-
-        # gamma_hook = self.gamma.register_hook(
-        #     lambda grad: print("gamma grad is {0}".format(grad.data)))
-
-        #extract the best quality feature
-        #core_template = (max_dist_mask * x).sum(1)
-        #core_template = core_template.unsqueeze(1)
         core_template = (x.transpose(1,2) @ max_dist_mask).transpose(1,2)
         core_template.require_grad = True
-        # grad_hook5 = core_template.register_hook(
-        #     lambda grad: print("current_farthest Grad is {0}".format(grad.data.norm(2))))
-
         #After each extraction compute the distance from the coretemplate to the whule template x
         dist_core_template_to_template = self.angluar_dist_with_norm(core_template, norms, x)
         dist_core_template_to_template.require_grad = True
-        # grad_hook6 = dist_core_template_to_template.register_hook(
-        #     lambda grad: print("dist_core_template_to_template Grad is {0}".format(grad.data.norm(2))))
-
-        #dist_core_template_to_template = dist_core_template_to_template.squeeze(1)
 
         for i in range(npoint-1):
             #Extract index of new point
             max_dist_mask = torch.nn.functional.gumbel_softmax(dist_core_template_to_template * scaler , hard=True, tau=tau,
                                                            dim=1)
-            # max_dist_mask_hook = max_dist_mask.register_hook(
-            #     lambda grad: print("max_dist_mask_hook Grad is {0}".format(grad.data.norm(2))))
-
-            # extract the best quality feature
-            # new_core_item = (max_dist_mask * x).sum(1)
-            # new_core_item = new_core_item.unsqueeze(1)
             new_core_item = (x.transpose(1,2) @ max_dist_mask).transpose(1,2)
-
             dist_new_selected_to_template = self.angluar_dist_with_norm(new_core_item, norms, x)
             dist_core_template_to_template = torch.min(dist_core_template_to_template, dist_new_selected_to_template)
-
             core_template = torch.cat([core_template, new_core_item], dim=1)
-            # grad_hook7 = core_template.register_hook(
-            #     lambda grad: print("core_template7 Grad is {0}".format(grad.data.norm(2))))
 
         return core_template
 
 
 
-
-
-    def incremental_farthest_search_norms_(self, points, k, norms):
-        #remaining_points = points[:].tolist()
-        batch_size = points.shape[0]
-        template_size = points.shape[1]
-        remaining_points = points
-        #norms = norms[:].tolist()
-        #The solution set shape is (N, K, 512)
-        #The points shape is (N,T,512) where T is the template size
-        solution_set = torch.empty((points.shape[0], k, points.shape[-1]), device=points.device, requires_grad=True)
-        #The first sampled point is the point with maximum norm (best quality)
-        max_value, max_indices = torch.max(norms, dim=-1)
-        max_mask = torch.zeros_like(norms).scatter_(1, max_indices.unsqueeze(1), 1)
-        _, non_max_indices = torch.where(max_mask == 0)
-        non_max_indices = non_max_indices.reshape(points.shape[0],-1)
-        max_indices = max_indices.reshape(points.shape[0],-1)
-
-
-        popped_feature_tensor, remaining_points = self.pop(remaining_points, max_indices, non_max_indices)
-
-        solution_index = 0
-        solution_set = solution_set.clone()
-        solution_set[:,solution_index, :] = popped_feature_tensor.squeeze()
-        solution_index += 1
-        remaining_points_count = template_size - solution_index
-        _, remaining_norms = self.pop(norms, max_indices, non_max_indices)
-        # solution_set.append(remaining_points.pop(max_index))
-        #norms.pop(max_index)
-        for _ in range(k - 1):
-            #iteration on the ouput k - 1 times (we already have 1 in the solution set)
-            # distances = [angluar_dist(p, solution_set[0]) for p in remaining_points]
-            #distances = [torch.tensor(np
-            # .Inf)] * len(remaining_points)
-            distances = torch.ones(batch_size, remaining_points_count, device=points.device) * torch.tensor(torch.finfo(float).max)
-            for i in range(remaining_points_count):
-                #iteration on the remaining points (not in the solution set):
-                #Take a point from the remaining point and compute the distances to all points in the solution set
-                p = remaining_points[:,i,:]
-                #norm = remaining_norms[:,i]
-            #for i, p in enumerate(remaining_points):
-                for j in range(solution_index):
-                    # For each point outside the solution set, compute the distance to each point the solution set
-                #for j, s in enumerate(solution_set):
-                    s = solution_set[:,j, :]
-                    dist_p_s = self.angluar_dist_with_norm(p, s)
-                    distances_new = distances.clone()
-                    distances_new[:,i] = torch.min(distances[:,i], dist_p_s)
-                    distances = distances_new
-
-            #Now distances holds for each point in the 'remaining points' the minimal distance to the solution set
-            #We have to choose the points farther away from the solution set
-            #max_values, max_indices = torch.max(distances, dim=1)
-            max_mask = torch.nn.functional.gumbel_softmax(100000000 * distances, hard=True, tau=0.000000000000001, dim=1)
-
-            # max_mask = torch.autograd.Variable(torch.zeros_like(distances), requires_grad=True)
-            # max_mask_clone = max_mask.clone()
-            # max_mask_clone.scatter_(1, max_indices.unsqueeze(1), torch.ones_like(max_indices.unsqueeze(1), dtype=torch.float32))
-
-            _, non_max_indices = torch.where(max_mask == 0)
-            non_max_indices = non_max_indices.reshape(batch_size, -1)
-            max_indices = max_indices.reshape(batch_size, -1)
-            popped_feature_tensor, remaining_points = self.pop(remaining_points, max_indices, non_max_indices)
-            solution_set = solution_set.clone()
-            solution_set[:, solution_index, :] = popped_feature_tensor.squeeze()
-            solution_index += 1
-            remaining_points_count = template_size - solution_index
-            _, remaining_norms = self.pop(remaining_norms, max_indices, non_max_indices)
-
-            # solution_set.append(remaining_points.pop(max_index))
-            # norms.pop(max_index)
-        return solution_set
-
-    def aggregate_fps_with_norm_priority(self, template_features, template_norms):
+    def aggregate_fps_with_norm_priority(self, template_features, template_norms, only_FPS):
         """
         Combine FPS with norm priority.
         Merge the norm size with farthest point in one metric.
         """
 
-        # temlate features has the shape (N, L, 512) where L is the template size
-        # with torch.no_grad():
-        #     self.gamma = torch.nn.Parameter(torch.clip(self.gamma, min=0.0001, max=0.2))
-        #     self.alpha = torch.nn.Parameter(torch.clip(self.alpha, min=0.0001, max=1.0))
-        #Gil
         if self.training:
             K = self.coreset_size
         else:
@@ -727,45 +478,35 @@ class TemplateAggregateModel(nn.Module):
         number_features = template_features.shape[1]
         actual_K = torch.min(torch.tensor([K, torch.tensor(number_features)]))
 
-        #normalized_norms = template_norms * self.feature_norm_normalizer.sigmoid()
+
         template_features = template_norms.unsqueeze(-1).repeat(1,1,template_features.shape[-1]) * template_features
         template_features.require_grad = True
         template_norms.require_grad = True
-        core_template_orig = self.farthest_point_sample_copilot(template_features, actual_K, template_norms)
+        core_template_orig = self.differential_farthest_point_sample(template_features, actual_K, template_norms)
+        if only_FPS:
+            agg = torch.mean(core_template_orig, dim=1)
+            return agg, core_template_orig
         core_template = core_template_orig
         norm_encoding_template = get_proposal_pos_embed(template_norms, self.embedding_size)
-        #norm_encoding_template = self.pos_trans_norm(self.pos_trans(norm_encoding_template))
+
         norm_encoding_template = self.pos_trans_norm(norm_encoding_template)
 
         core_template_norms = core_template.norm(dim=2)
-        #core_template_norms = (self.quality_measure(core_template).squeeze(-1) * core_template_norms).sigmoid() + 1.0
+
         norm_encoding_core_template = get_proposal_pos_embed(core_template_norms, self.embedding_size)
-        #norm_encoding_core_template = self.pos_trans_norm(self.pos_trans(norm_encoding_core_template))
+
         norm_encoding_core_template = self.pos_trans_norm(norm_encoding_core_template)
-
-        #FPS_sample_pos = self.encoder_layer(FPS_sample_pos)
-
-        #delta = self.my_decoder_layer(core_template, norm_encoding_core_template, template_features, norm_encoding_template)
         delta = self.decoder_layer1(core_template, norm_encoding_core_template, template_features, norm_encoding_template)
-        #delta = self.decoder_layer2(decoded_features, template_features)
-        #template_mean_mult = template_mean.repeat((1, FPS_sample.shape[1], 1))
-        #FPS_sample = FPS_sample + template_mean_mult
 
         core_template = core_template + delta
         agg = torch.mean(core_template, dim=1)
-        if 0:
-            agg_max, _ = torch.max(core_template, axis=1)
-            agg_min, _ = torch.min(core_template, axis=1)
-            agg_abs_max = torch.abs(agg_max)
-            agg_abs_min = torch.abs(agg_min)
-            agg = torch.where(agg_abs_max > agg_abs_min, agg_max, agg_min)
 
         return agg, core_template_orig
 
-    def forward(self, template_features, template_norms):
+    def forward(self, template_features, template_norms, only_FPS=False):
         # Template batch shape is [N, T, 512]
         template_norms = torch.squeeze(template_norms, dim=-1)
-        aggregated_feature, FPS_sample = self.aggregate_fps_with_norm_priority(template_features, template_norms)
+        aggregated_feature, FPS_sample = self.aggregate_fps_with_norm_priority(template_features, template_norms, only_FPS)
         norms = aggregated_feature.norm(dim=-1).unsqueeze(-1)
         aggregated_feature_norm = aggregated_feature / norms
         return aggregated_feature_norm, norms, FPS_sample

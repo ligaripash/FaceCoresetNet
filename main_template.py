@@ -81,7 +81,8 @@ def main(args):
     #my_loggers = wandb_logger
     resume_from_checkpoint = hparams.resume_from_checkpoint if hparams.resume_from_checkpoint else None
     if resume_from_checkpoint is not None:
-        trainer_mod = trainer_mod.load_from_checkpoint(resume_from_checkpoint,lr=hparams.lr, gamma_lr=hparams.gamma_lr, h=hparams.h)
+        trainer_mod = trainer_mod.load_from_checkpoint(resume_from_checkpoint,lr=hparams.lr, gamma_lr=hparams.gamma_lr,
+                                                       h=hparams.h, gamma=hparams.gamma )
 
     ddp = DDPStrategy(process_group_backend="gloo", find_unused_parameters=True)
 
