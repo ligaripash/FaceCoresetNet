@@ -23,7 +23,6 @@ from pytorch_lightning.strategies import DDPStrategy
 
 
 
-
 import sys
 
 def debugger_is_active() -> bool:
@@ -67,12 +66,14 @@ def main(args):
 
 
     # create model checkpoint callback
-    monitor = '10 ** -6 IJBC'
-    #monitor = None
+    #monitor = '10 ** -6 IJBC'
+    monitor = None
     mode = 'max'
     save_top_k = hparams.epochs+1 if hparams.save_all_models else 1
-    checkpoint_callback = ModelCheckpoint(dirpath=hparams.output_dir, save_last=True,
-                                          save_top_k=save_top_k, monitor=monitor, mode=mode)
+    # checkpoint_callback = ModelCheckpoint(dirpath=hparams.output_dir, save_last=True,
+    #                                       save_top_k=save_top_k, monitor=monitor, mode=mode)
+
+    checkpoint_callback = ModelCheckpoint(dirpath=hparams.output_dir)
 
     #log_wandb_logger.watch(trainer_mod, log="all", log_freq=1, log_graph=True)
     # create logger
@@ -104,6 +105,7 @@ def main(args):
                          check_val_every_n_epoch=hparams.check_val_every_n_epoch,
                          deterministic=True
                          )
+
 
     if not hparams.evaluate:
         # train / val
