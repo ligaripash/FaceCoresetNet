@@ -24,12 +24,12 @@ We release the FaceCoresetNet model pretrained on AdaFace backbone.
 The backbone is trained on WebFace4M dataset. 
 And FaceCoresetNet is trained on a subset of WebFace4M dataset. 
 
-- Pretrained FaceCoresetNet model:  [FaceCoresetNet_AdaFaceWebFace4M.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
+- Pretrained FaceCoresetNet model:  [FaceCoresetNet.pth](https://drive.google.com/file/d/19cBIRF06ALgbeKXLR1B2h4aNrHj3d9Lf/view?usp=sharing)
 
 Place FaceCoresetNet.pth under `pretrained_models/`
 ```
 pretrained_models/
-├── FaceCoresetNet_AdaFaceWebFace4M.ckpt                         
+├── FaceCoresetNet.ckpt                         
 ```
 # Evaluation
 
@@ -63,8 +63,8 @@ validation_IJBB_IJBC/
 
 Refer to the below code for evaluation.
 ```bash
-cd validation_IJBB_IJBC
-bash scripts/run.sh  # DATA_ROOT and IJB_META_PATH has to be specified.
+1. Update eval.sh with your DATA_ROOT
+2. bash ./eval.sh  
 ```
 
 
@@ -81,6 +81,6 @@ The model was trained on a WebFace4M subset that can be downloaded here [AdaFace
 For training script, refer to
 ```bash
 cd FaceCoresetNet
-bash scripts/run.sh  # DATA_ROOT has to be specified. 
+bash ./train.sh  # DATA_ROOT has to be specified. 
 ```
 
