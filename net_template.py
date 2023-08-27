@@ -38,15 +38,6 @@ def angluar_dist_with_norm(norm, a, b):
 
 
 def get_proposal_pos_embed(real_norms, embed_dim):
-    # batch_size = real_norms.size(0)
-    # max_seq_length = real_norms.size(1)
-    #
-    # position_enc = torch.zeros(batch_size, max_seq_length, embed_dim,device=real_norms.device)
-    # div_term = torch.exp(torch.arange(0, embed_dim, 2, device=real_norms.device).float() * (-torch.log(torch.tensor(10000.0)) / embed_dim))
-    #
-    # position_enc[:, :, 0::2] = torch.sin(real_norms.unsqueeze(-1) * div_term)
-    # position_enc[:, :, 1::2] = torch.cos(real_norms.unsqueeze(-1) * div_term)
-    # return position_enc
 
 
     proposals = real_norms
@@ -163,47 +154,6 @@ class TransformerDecoderLayerOrig(Module):
         return q
 
 
-
-    def orig_forward(
-        self,
-        tgt: Tensor,
-        memory: Tensor,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        tgt_is_causal: bool = False,
-        memory_is_causal: bool = False,
-    ) -> Tensor:
-        r"""Pass the inputs (and mask) through the decoder layer.
-
-        Args:
-            tgt: the sequence to the decoder layer (required).
-            memory: the sequence from the last layer of the encoder (required).
-            tgt_mask: the mask for the tgt sequence (optional).
-            memory_mask: the mask for the memory sequence (optional).
-            tgt_key_padding_mask: the mask for the tgt keys per batch (optional).
-            memory_key_padding_mask: the mask for the memory keys per batch (optional).
-            tgt_is_causal: If specified, applies a causal mask as tgt mask.
-                Mutually exclusive with providing tgt_mask. Default: ``False``.
-            memory_is_causal: If specified, applies a causal mask as tgt mask.
-                Mutually exclusive with providing memory_mask. Default: ``False``.
-        Shape:
-            see the docs in Transformer class.
-        """
-        # see Fig. 1 of https://arxiv.org/pdf/2002.04745v1.pdf
-
-        x = tgt
-        if self.norm_first:
-            x = x + self._sa_block(self.norm1(x), tgt_mask, tgt_key_padding_mask, tgt_is_causal)
-            x = x + self._mha_block(self.norm2(x), memory, memory_mask, memory_key_padding_mask, memory_is_causal)
-            x = x + self._ff_block(self.norm3(x))
-        else:
-            x = self.norm1(x + self._sa_block(x, tgt_mask, tgt_key_padding_mask, tgt_is_causal))
-            x = self.norm2(x + self._mha_block(x, memory, memory_mask, memory_key_padding_mask, memory_is_causal))
-            x = self.norm3(x + self._ff_block(x))
-
-        return x
 
 
     # self-attention block

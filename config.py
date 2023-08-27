@@ -36,7 +36,7 @@ def get_args():
     parent_parser.add_argument('--start_from_model_statedict', type=str, default='')
     parent_parser.add_argument('--max_template_size', default=20, type=int)
     parent_parser.add_argument('--wandb_disable', action='store_true')
-    parent_parser.add_argument('--ijb_root', default='./datasets/ijb/')
+    parent_parser.add_argument('--ijb_root', default='')
     parent_parser.add_argument('--dataset_name', default='IJBB')
     parent_parser.add_argument('--limit_train_batches', default=1.0, type=float)
     parent_parser.add_argument('--val_check_interval', default=1.0, type=float)

@@ -36,10 +36,6 @@ def main(args):
     if hparams.seed is not None:
         seed_everything(hparams.seed, workers=True)
 
-    # run_name = '-'.join([
-    #     datetime.now().strftime("%Y%m%d-%H%M%S"),
-    #     os.path.basename(hparams.output_dir)
-    # ])
     run_name = os.path.basename(hparams.output_dir)
     wandb_mode = 'online'
     if debugger_is_active() or hparams.wandb_disable:
@@ -47,10 +43,8 @@ def main(args):
 
     print('wandb_mode', wandb_mode)
 
-    #log_wandb_logger = wandb.init(project="set-face-recognition", mode=wandb_mode, name=run_name, id=run_name)
-    log_wandb_logger = WandbLogger(project="set-face-recognition", mode=wandb_mode, name=run_name, id=run_name)
+    log_wandb_logger = WandbLogger(project="FaceCoresetNet", mode=wandb_mode, name=run_name, id=run_name)
 
-    #hparams['logger'] = log_wandb_logger
     trainer_mod = FaceCoresetNet(**hparams)
 
 
@@ -64,18 +58,9 @@ def main(args):
     #log_wandb_logger.watch(trainer_mod, log='all')
     data_mod = data.DataModule(**hparams)
 
-
-    # create model checkpoint callback
-    #monitor = '10 ** -6 IJBC'
-    monitor = None
-    mode = 'max'
-    save_top_k = hparams.epochs+1 if hparams.save_all_models else 1
-    # checkpoint_callback = ModelCheckpoint(dirpath=hparams.output_dir, save_last=True,
-    #                                       save_top_k=save_top_k, monitor=monitor, mode=mode)
-
-    checkpoint_callback = ModelCheckpoint(dirpath=hparams.output_dir)
-
-    #log_wandb_logger.watch(trainer_mod, log="all", log_freq=1, log_graph=True)
+    save_top_k = -1
+    checkpoint_callback = ModelCheckpoint(dirpath=hparams.output_dir, save_last=True,
+                                          save_top_k=save_top_k)
     # create logger
     csv_logger = CSVLogger(save_dir=hparams.output_dir, name='result')
     my_loggers = [log_wandb_logger, csv_logger]
@@ -83,7 +68,9 @@ def main(args):
     resume_from_checkpoint = hparams.resume_from_checkpoint if hparams.resume_from_checkpoint else None
     if resume_from_checkpoint is not None:
         trainer_mod = trainer_mod.load_from_checkpoint(resume_from_checkpoint,lr=hparams.lr, gamma_lr=hparams.gamma_lr,
-                                                       h=hparams.h, gamma=hparams.gamma )
+                                                       h=hparams.h, gamma=hparams.gamma, train_data_path=hparams.train_data_path,
+                                                       ijb_root=hparams.ijb_root
+                                                       )
 
     ddp = DDPStrategy(process_group_backend="gloo", find_unused_parameters=True)
 
