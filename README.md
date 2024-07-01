@@ -1,6 +1,6 @@
 # FaceCoresetNet: Differentiable Coresets for Face Set Recognition
 
-Official github repository for FaceCoresetNet: [Differentiable Coresets for Face Set Recognition]([https://github.com/example/project](https://arxiv.org/abs/2308.14075))
+Official github repository for FaceCoresetNet: [Differentiable Coresets for Face Set Recognition](https://arxiv.org/abs/2308.14075)
 
 
 
