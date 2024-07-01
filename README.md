@@ -1,6 +1,7 @@
 # FaceCoresetNet: Differentiable Coresets for Face Set Recognition
 
 Official github repository for FaceCoresetNet: Differentiable Coresets for Face Set Recognition
+
 Published at AAAI2024
 
 
