@@ -1,6 +1,7 @@
 # FaceCoresetNet: Differentiable Coresets for Face Set Recognition
 
 Official github repository for FaceCoresetNet: Differentiable Coresets for Face Set Recognition
+Published at AAAI2024
 
 
 > Abstract: In set-based face recognition, we aim to compute the most discriminative descriptor from an unbounded set of images and videos showing a single person. A discriminative descriptor balances two policies when aggregating information from a given set. The first is a quality-based policy: emphasizing high-quality and down-weighting low-quality images. The second is a diversity-based policy: emphasizing unique images in the set and down-weighting multiple occurrences of similar images as found in video clips which can overwhelm the set representation.
